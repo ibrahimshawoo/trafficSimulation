@@ -1,6 +1,5 @@
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
-
 import java.awt.*;
 
 
@@ -63,6 +62,12 @@ public class Car extends Rectangle {
             default:
                 return fail;
         }
+    }
+
+    //checks if car has collided with another car
+    //returns ture if a collision has occurred
+    public boolean checkCollision(Car car){
+        return this.getBoundsInParent().intersects(car.getBoundsInParent());
     }
 
 
