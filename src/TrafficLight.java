@@ -16,17 +16,17 @@ public class TrafficLight extends Circle {
 
     public void setGo(){
         this.setFill(Color.GREEN);
-        setIsSafe(true);
+        this.setIsSafe(true);
     }
 
     public void setStop(){
         this.setFill(Color.RED);
-        setIsSafe(false);
+        this.setIsSafe(false);
     }
 
     //RED isSafe = false
     //GREEN isSafe = true
-    private Boolean getIsSafe(){
+    public Boolean getIsSafe(){
         return this.isSafe;
     }
 

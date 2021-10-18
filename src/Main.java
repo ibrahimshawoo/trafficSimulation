@@ -1,24 +1,20 @@
 import javafx.animation.AnimationTimer;
 import javafx.animation.PathTransition;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -91,14 +87,11 @@ public class Main extends Application {
         radioButtonB.setUserData(trafficLightB);
         radioButtonC.setUserData(trafficLightC);
 
-        trafficLightControls.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-            @Override
-            public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue) {
-                TrafficLight oldTrafficLight = (TrafficLight) oldValue.getUserData();
-                oldTrafficLight.setStop();
-                TrafficLight newTrafficLight = (TrafficLight) newValue.getUserData();
-                newTrafficLight.setGo();
-            }
+        trafficLightControls.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            TrafficLight oldTrafficLight = (TrafficLight) oldValue.getUserData();
+            oldTrafficLight.setStop();
+            TrafficLight newTrafficLight = (TrafficLight) newValue.getUserData();
+            newTrafficLight.setGo();
         });
 
         //add car button
@@ -107,7 +100,7 @@ public class Main extends Application {
         addCarButton.setLayoutY(500);
         addCarButton.setMinHeight(50);
         addCarButton.setMinWidth(100);
-        addCarButton.setOnAction(event -> addCarButtonEvent(root, allCars));
+        addCarButton.setOnAction(event -> addCarButtonEvent(root, allCars, trafficLightA,trafficLightB,trafficLightC));
 
         //add everything
         root.getChildren().addAll(
@@ -126,44 +119,84 @@ public class Main extends Application {
 
     //animates car to follow given path
     public void animateCar(Car car, Polyline line, Group root, List<Car> allCars) {
-        PathTransition pathTransition = new PathTransition();
-        pathTransition.setDuration(Duration.millis(2500));
-        pathTransition.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
-        pathTransition.setNode(car);
-        pathTransition.setPath(line);
+        //create part one of the journey
+        //create path transition
+        PathTransition path1 = new PathTransition();
+        path1.setDuration(Duration.millis(2500));
+        //allow car to rotate if it makes a turn
+        path1.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+        //add the car to the path
+        path1.setNode(car);
+        //set the path to the first part of the journey
+        path1.setPath(car.getJourney().getStartToStop());
+        //play the animation
+        path1.play();
+        //called when car gets to the junction
+        path1.setOnFinished(actionEvent -> {
+            //start an animation timer to check the traffic light
+            AnimationTimer animationTimer = new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    //check the traffic light
+                    TrafficLight trafficLight = car.getJourney().getTrafficLight();
+                    Boolean isSafe = trafficLight.getIsSafe();
+                    //if it's safe
+                    if(isSafe){
+                        //stop the animation timer
+                        this.stop();
+                        //start the car going on the second path
+                        PathTransition path2 = new PathTransition();
+                        path2.setDuration(Duration.millis(2500));
+                        //allow car to rotate if it makes a turn
+                        path2.setOrientation(PathTransition.OrientationType.ORTHOGONAL_TO_TANGENT);
+                        //add the car to the path
+                        path2.setNode(car);
+                        //set the path to the second part of the journey
+                        path2.setPath(car.getJourney().getStopToEnd());
+                        //play the animation
+                        path2.play();
+                        //when the animation is finished remove the car
+                        path2.setOnFinished(actionEvent->{
+                            root.getChildren().remove(car);
+                        });
+                    }
+                }
+            };
+            animationTimer.start();
 
-        //method is called each frame of the animation
-        AnimationTimer collisionTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                checkCollisions(allCars);
-            }
-        };
 
-        pathTransition.play();
-
-        //called when car gets to the end of its path
-        pathTransition.setOnFinished(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(final ActionEvent actionEvent) {
-                root.getChildren().remove(car);
-                allCars.remove(car);
-            }
         });
     }
 
     //chooses a random path for car to follow, spawns car, makes car follow given path
-    public void addCarButtonEvent(Group root, List<Car> allCars) {
-        System.out.println("button pressed");
+    public void addCarButtonEvent(Group root, List<Car> allCars, TrafficLight trafficLightA,TrafficLight trafficLightB,TrafficLight trafficLightC) {
         //choose random path (0-5)
         Random random = new Random();
         int pathNumber = random.nextInt(6);
-        System.out.println(pathNumber);
+        //creates a new car
         Car car = new Car(pathNumber);
-        allCars.add(car);
-        System.out.println(car.getPath());
+        //gives the journey the relevant traffic light
+        setTrafficLight(car, trafficLightA,trafficLightB,trafficLightC);
+        //add the car to the scene
         root.getChildren().addAll(car);
+        //animate the car
         animateCar(car, car.getPath(), root, allCars);
+    }
+
+    //sets the traffic light for the journey
+    public void setTrafficLight(Car car, TrafficLight trafficLightA, TrafficLight trafficLightB, TrafficLight trafficLightC){
+        String startPoint = car.getJourneyStartPoint();
+        switch (startPoint) {
+            case "a":
+                car.journey.setTrafficLight(trafficLightA);
+                break;
+            case "b":
+                car.journey.setTrafficLight(trafficLightB);
+                break;
+            case "c":
+                car.journey.setTrafficLight(trafficLightC);
+                break;
+        }
     }
 
     //handles collisions
