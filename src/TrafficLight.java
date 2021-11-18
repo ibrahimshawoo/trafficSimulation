@@ -4,38 +4,55 @@ import javafx.scene.shape.Circle;
 public class TrafficLight extends Circle {
 
     Boolean isSafe;
-    public TrafficLight(int centreX, int centreY){
+    int numberOfCarsWaiting;
+
+    public TrafficLight(int centreX, int centreY) {
         //by default traffic light is red
         this.setCenterX(centreX);
         this.setCenterY(centreY);
-        this.setRadius(25);
+        this.setRadius(20);
         this.setFill(Color.RED);
         this.setStroke(Color.BLACK);
         this.isSafe = false;
     }
 
-    public void setGo(){
+    public void setGo() {
         this.setFill(Color.GREEN);
         this.setIsSafe(true);
     }
 
-    public void setStop(){
+    public void setStop() {
         this.setFill(Color.RED);
         this.setIsSafe(false);
     }
 
     //RED isSafe = false
     //GREEN isSafe = true
-    public Boolean getIsSafe(){
+    public Boolean getIsSafe() {
         return this.isSafe;
     }
 
     //RED isSafe = false
     //GREEN isSafe = true
-    public void setIsSafe(Boolean isSafe){
+    public void setIsSafe(Boolean isSafe) {
         this.isSafe = isSafe;
     }
 
+    public void addCarsWaiting(){
+        this.numberOfCarsWaiting += 1;
+    }
+
+    public int getNumberOfCarsWaiting(){
+        return this.numberOfCarsWaiting;
+    }
+
+    public void removeCar(){
+        this.numberOfCarsWaiting -= 1;
+    }
+
+    public void resetCarsWaiting(){
+        this.numberOfCarsWaiting = 0;
+    }
 
 
 }

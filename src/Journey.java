@@ -4,7 +4,7 @@ import javafx.scene.shape.Polyline;
 import java.awt.*;
 
 public class Journey {
-    private Point start;
+    private final Point start;
     private Point end;
     private Point stop;
     private Point turn;
@@ -12,24 +12,43 @@ public class Journey {
 
     private Polyline startToStop;
     private Polyline stopToEnd;
-    public Journey (Point start, Point stop,Point turn, Point end){
+
+    public Journey(Point start, Point stop, Point turn, Point end) {
         this.start = start;
         this.startToStop = new Polyline(start.getX(), start.getY(), stop.getX(), stop.getY());
-        this.stopToEnd = new Polyline(stop.getX(),stop.getY(),turn.getX(),turn.getY(),end.getX(),end.getY());
+        this.stopToEnd = new Polyline(stop.getX(), stop.getY(), turn.getX(), turn.getY(), end.getX(), end.getY());
     }
 
-    public String getJourneyStartPoint(){
-        Point a = new Point(0,150);
-        Point b = new Point(1000,250);
-        Point c = new Point(450,700);
-        if(start.equals(a)){
+
+    public String getJourneyStartPointTJunction(TJunction tJunction) {
+        Point a = tJunction.getA();
+        Point b = tJunction.getB();
+        Point c = tJunction.getC();
+
+        if (start.equals(a)) {
             return "a";
-        }else if(start.equals(b)){
+        } else if (start.equals(b)) {
             return "b";
-        }else {
+        } else {
             return "c";
         }
+    }
 
+    public String getJourneyStartPointCross() {
+        Point a = new Point(-100, 410);
+        Point b = new Point(990, -100);
+        Point c = new Point(2000, 490);
+        Point d = new Point(910, 1000);
+
+        if (start.equals(a)) {
+            return "a";
+        } else if (start.equals(b)) {
+            return "b";
+        } else if (start.equals(c)){
+            return "c";
+        } else {
+            return "d";
+        }
     }
 
     public TrafficLight getTrafficLight() {
@@ -54,5 +73,13 @@ public class Journey {
 
     private void setStopToEnd(Polyline stopToEnd) {
         this.stopToEnd = stopToEnd;
+    }
+
+    public Point getStart() {
+        return start;
+    }
+
+    public String getJourneyAsString(){
+        return start.toString() + " " + stop.toString();
     }
 }

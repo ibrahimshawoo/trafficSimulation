@@ -1,121 +1,228 @@
-import javafx.scene.shape.Polyline;
+import javafx.animation.PathTransition;
+import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
+
 import java.awt.*;
 
 
-public class Car extends Rectangle {
+public class Car extends StackPane {
 
-    //set points
-    Point a = new Point(0, 150);
-    Point ja = new Point(320, 150);
-    Point a2 = new Point(0, 250);
-    Point ja2 = new Point(400, 250);
+    private Point crossa = new Point(-100, 410);
+    private Point crossja = new Point(800, 410);
+    private Point crossa2 = new Point(-100, 490);
+    private Point crossja2 = new Point(800, 490);
 
-    Point b = new Point(1000, 150);
-    Point jb = new Point(600, 150);
-    Point b2 = new Point(1000, 250);
-    Point jb2 = new Point(680, 250);
+    private Point crossb = new Point(910, -100);
+    private Point crossjb = new Point(910, 300);
+    private Point crossb2 = new Point(990, -100);
+    private Point crossjb2 = new Point(990, 300);
 
-    Point c = new Point(450, 700);
-    Point jc = new Point(450, 380);
-    Point c2 = new Point(550, 700);
-    Point jc2 = new Point(550, 300);
+    private Point crossc = new Point(2000, 410);
+    private Point crossjc = new Point(1100, 410);
+    private Point crossc2 = new Point(2000, 490);
+    private Point crossjc2 = new Point(1100, 490);
 
-    Point turn1 = new Point(450,150);
-    Point turn2 = new Point(550,150);
-    Point turn3 = new Point(450,250);
-    Point turn4 = new Point(550,250);
+    private Point crossd = new Point(910, 1000);
+    private Point crossjd = new Point(910, 600);
+    private Point crossd2 = new Point(990, 1000);
+    private Point crossjd2 = new Point(990, 600);
 
-    //set up paths
-    Polyline ab = new Polyline(a.getX(), a.getY(), b.getX(), b.getY());
-    Polyline ba = new Polyline(b2.getX(), b2.getY(), a2.getX(), a2.getY());
-    Polyline ac = new Polyline(a.getX(), a.getY(), c2.getX(), a.getY(), c2.getX(), c2.getY());
-    Polyline bc = new Polyline(b2.getX(), b2.getY(), c2.getX(), b2.getY(), c2.getX(), c2.getY());
-    Polyline ca = new Polyline(c.getX(), c.getY(), c.getX(), a2.getY(), a2.getX(), a2.getY());
-    Polyline cb = new Polyline(c.getX(), c.getY(), c.getX(), b.getY(), b.getX(), b.getY());
+    private Point crossturn1 = new Point(910, 410);
+    private Point crossturn2 = new Point(990, 410);
+    private Point crossturn3 = new Point(990, 490);
+    private Point crossturn4 = new Point(910, 490);
 
-    Journey abJourney = new Journey(a, ja,turn1,b);
-    Journey baJourney = new Journey(b2,jb2,turn4,a2);
-    Journey acJourney = new Journey(a,ja,turn2,c2);
-    Journey bcJourney = new Journey(b2,jb2,turn4,c2);
-    Journey caJourney = new Journey(c,jc,turn3,a2);
-    Journey cbJourney = new Journey(c,jc,turn1,b);
+    private Journey crossabJourney = new Journey(crossa, crossja, crossturn1, crossb);
+    private Journey crossbaJourney = new Journey(crossb2, crossjb2, crossturn3, crossa2);
+    private Journey crossacJourney = new Journey(crossa, crossja, crossturn2, crossc);
+    private Journey crosscaJourney = new Journey(crossc2, crossjc2, crossturn3, crossa2);
+    private Journey crossadJourney = new Journey(crossa, crossja, crossturn2, crossd2);
+    private Journey crossdaJourney = new Journey(crossd, crossjd, crossturn4, crossa2);
+    private Journey crossbcJourney = new Journey(crossb2, crossjb2, crossturn2, crossc);
+    private Journey crosscbJourney = new Journey(crossc2, crossjc2, crossturn4, crossb);
+    private Journey crossbdJourney = new Journey(crossb2, crossjb2, crossturn3, crossd2);
+    private Journey crossdbJourney = new Journey(crossd, crossjd, crossturn4, crossb);
+    private Journey crosscdJourney = new Journey(crossc2, crossjc2, crossturn3, crossd2);
+    private Journey crossdcJourney = new Journey(crossd, crossjd, crossturn1, crossc);
 
-    //polyline for if path number fails
-    Polyline fail = new Polyline(0,10, 100,10);
-
-    Polyline path;
-    Journey journey;
+    public Journey journey;
 
 
-    public Car (int pathNumber){
-        this.setHeight(80);
-        this.setWidth(160);
-        this.path = getPathFromPathNumber(pathNumber);
-        this.journey = getJourneyFromPathNumber(pathNumber);
+    private Rectangle car;
+    private Rectangle bounds;
+    //image from https://www.freeiconspng.com/downloadimg/34859#google_vignette
+    private Image carImage = new Image("car.png");
+    private PathTransition pathTransition;
+    private Boolean hasCrashed = false;
+    private Car crashedCar;
+    private Duration crashDuration;
+
+    private TJunction tJunction;
+    private CrossJunction crossJunction;
+    private String junctionType;
+
+
+    public Car(int carSize) {
+        this.car = createCar(carSize);
+        this.bounds = createBounds();
+        this.getChildren().addAll(bounds, car);
+        double x = -100;
+        double y = -100;
+        this.setTranslateX(x);
+        this.setTranslateY(y);
     }
 
-    public Polyline getPath() {
-        return path;
+
+    private Rectangle createBounds() {
+        Rectangle rectangle = new Rectangle();
+        rectangle.setHeight(10);
+        rectangle.setWidth(60);
+        rectangle.setFill(Color.TRANSPARENT);
+        return rectangle;
+    }
+
+    private Rectangle createCar(int carSize) {
+        Rectangle rectangle = new Rectangle();
+        rectangle.setHeight(20*carSize);
+        rectangle.setWidth(40*carSize);
+        rectangle.setFill(new ImagePattern(carImage));
+        return rectangle;
     }
 
     public Journey getJourney() {
         return journey;
     }
 
-    public String getJourneyStartPoint(){
-        return this.journey.getJourneyStartPoint();
+    public PathTransition getPathTransition() {
+        return this.pathTransition;
     }
 
+    public void setPathTransition(PathTransition pathTransition) {
+        this.pathTransition = pathTransition;
+    }
 
+    public String getJourneyStartPointTJunction() {
+        return this.journey.getJourneyStartPointTJunction(tJunction);
+    }
 
+    public String getJourneyStartPointCross() {
+        return this.journey.getJourneyStartPointCross();
+    }
 
-    //path numbers 0-5
-    private Polyline getPathFromPathNumber(int pathNumber){
+    public void setJourneyTJunction(int pathNumber) {
+        System.out.println(pathNumber);
         switch (pathNumber) {
             case 0:
-                return ab;
+                System.out.println("case 0");
+                this.journey = tJunction.getAbJourney();
+                break;
             case 1:
-                return ba;
+                System.out.println("case 1");
+                this.journey = tJunction.getBaJourney();
+                break;
             case 2:
-                return ac;
+                System.out.println("case 2");
+                this.journey = tJunction.getAcJourney();
+                break;
             case 3:
-                return bc;
+                System.out.println("case 3");
+                this.journey = tJunction.getBcJourney();
+                break;
             case 4:
-                return ca;
+                System.out.println("case 4");
+                this.journey = tJunction.getCaJourney();
+                break;
             case 5:
-                return cb;
-            default:
-                return fail;
+                System.out.println("case 5");
+                this.journey = tJunction.getCbJourney();
         }
     }
 
-    private Journey getJourneyFromPathNumber(int pathNumber){
-        switch (pathNumber) {
-            case 0:
-                return abJourney;
-            case 1:
-                return baJourney;
-            case 2:
-                return acJourney;
-            case 3:
-                return bcJourney;
-            case 4:
-                return caJourney;
-            case 5:
-                return cbJourney;
+    public Journey getJourneyFromPathNumberCrossJunction(int pathNumber){
+        switch (pathNumber){
+            case 6:
+                return crossabJourney;
+            case 7:
+                return crossbaJourney;
+            case 8:
+                return crossacJourney;
+            case 9:
+                return crosscaJourney;
+            case 10:
+                return crossadJourney;
+            case 11:
+                return crossdaJourney;
+            case 12:
+                return crossbcJourney;
+            case 13:
+                return crosscbJourney;
+            case 14:
+                return crossbdJourney;
+            case 15:
+                return crossdbJourney;
+            case 16:
+                return crosscdJourney;
+            case 17:
+                return crossdcJourney;
             default:
                 return null;
         }
+
     }
 
-    //checks if car has collided with another car
-    //returns ture if a collision has occurred
-    public boolean checkCollision(Car car){
-        return this.getBoundsInParent().intersects(car.getBoundsInParent());
+    public Boolean getHasCrashed() {
+        return hasCrashed;
     }
 
+    public void setHasCrashed(Boolean hasCrashed) {
+        this.hasCrashed = hasCrashed;
 
+    }
 
+    public Car getCrashedCar() {
+        return this.crashedCar;
+    }
 
+    public void setCrashedCar(Car car) {
+        this.crashedCar = car;
+    }
+
+    public Duration getCrashDuration() {
+        return crashDuration;
+    }
+
+    public void setCrashDuration(Duration crashDuration) {
+        this.crashDuration = crashDuration;
+    }
+
+    public TJunction getTJunction() {
+        return tJunction;
+    }
+
+    public void setTJunction(TJunction tJunction) {
+        this.tJunction = tJunction;
+        this.junctionType = "T";
+    }
+
+    public CrossJunction getCrossJunction() {
+        return crossJunction;
+    }
+
+    public void setCrossJunction(CrossJunction crossJunction) {
+        this.crossJunction = crossJunction;
+        this.junctionType = "C";
+    }
+
+    public String getJunctionType() {
+        return junctionType;
+    }
+
+    public void setJunctionType(String junctionType) {
+        this.junctionType = junctionType;
+    }
 }
+
